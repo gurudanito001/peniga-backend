@@ -6,7 +6,7 @@
 
 const calculateEscrowFee = () =>{
 
-  return 5000;
+  return 0;
 }
 
 export default calculateEscrowFee;
