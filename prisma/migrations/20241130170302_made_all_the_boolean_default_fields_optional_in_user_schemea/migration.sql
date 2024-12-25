@@ -1,0 +1,6 @@
+-- AlterTable
+ALTER TABLE "User" ALTER COLUMN "isActive" DROP NOT NULL,
+ALTER COLUMN "showProfileImg" DROP NOT NULL,
+ALTER COLUMN "online" DROP NOT NULL,
+ALTER COLUMN "emailVerified" DROP NOT NULL,
+ALTER COLUMN "allowNotification" DROP NOT NULL;

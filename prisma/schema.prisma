@@ -1,0 +1,274 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Email {
+  id              String            @id @default(uuid())
+  email           String            @unique
+  verified        Boolean           @default(false)
+  code            Int
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+model User {
+  id              String            @id @default(uuid())
+  firstName       String
+  lastName        String
+  isActive        Boolean?           @default(true)
+  showProfileImg  Boolean?           @default(true)
+  country         String?
+  email           String            @unique
+  password        String    
+  online          Boolean?           @default(false)
+  profileImage    String?
+  emailVerified   Boolean?           @default(false)
+  allowNotification Boolean?         @default(true)
+  contractBuyer   Contract[]        @relation("ContractBuyer")
+  contractSeller  Contract[]        @relation("ContractSeller")
+  escrowBuyer     Escrow[]          @relation("EscrowBuyer")
+  escrowSeller    Escrow[]          @relation("EscrowSeller")
+  transactionSender  Transaction[]  @relation("Sender")
+  disputeRaiser              Dispute[]              @relation("DisputeRaiser")
+  disputeBuyer              Dispute[]              @relation("DisputeBuyer")
+  disputeSeller              Dispute[]              @relation("DisputeSeller")
+  disputeWinner              Dispute[]              @relation("DisputeWinner")
+  messageSender              Message[]              @relation("Sender")
+  messageReceiver              Message[]              @relation("Receiver")
+  payments                  Payment[]
+  paymentAccounts           PaymentAccount[]
+  notifications   Notification[]
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+
+model Contract {
+  id             String            @id @default(uuid())
+  buyer          User?              @relation("ContractBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  buyerId        String?         
+  seller         User?              @relation("ContractSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+  sellerId       String?        
+  title          String         
+  currency       String             @default("NGN")
+  inspectionPeriod  String       
+  startDate      DateTime         @default(now()) 
+  endDate        DateTime?        
+  agreementTerms Json?  
+  toBeInformed   Json 
+  escrowFeePaidBy EscrowFeePayers
+  contractItems  ContractItem[]
+  attachments    Attachment[]   
+  transactions   Transaction[]    
+  status         ContractStatus   @default(ACTIVE)
+  stage          ContractStage    @default(CREATED)
+  escrow         Escrow?           
+  payment        Payment?
+  dispute        Dispute?  
+  tempAccount    TempAccount?       
+  createdAt      DateTime         @default(now()) 
+  updatedAt      DateTime         @updatedAt
+}
+
+model Attachment {
+  id             String            @id @default(uuid())
+  contract       Contract?          @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  contractId     String?  
+  dispute        Dispute?           @relation(fields: [disputeId], references: [id], onDelete: Cascade)
+  disputeId      String?                     
+  fileName       String                      
+  fileUrl        String
+  fileType       String?                     
+  createdAt      DateTime          @default(now()) 
+  updatedAt      DateTime          @updatedAt
+}
+
+model ContractItem {
+  id             String            @id @default(uuid())
+  contract       Contract          @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  contractId     String                     
+  itemName       String                      
+  price          Int            
+  category       String?  
+  description    String?                   
+  createdAt      DateTime          @default(now()) 
+  updatedAt      DateTime          @updatedAt
+}
+
+model Escrow {
+  id                String          @id @default(uuid())
+  buyer             User            @relation("EscrowBuyer", fields: [buyerId], references: [id],  onDelete: Cascade) 
+  buyerId           String
+  seller            User            @relation("EscrowSeller", fields: [sellerId], references: [id],  onDelete: Cascade) 
+  sellerId          String
+  contract          Contract        @relation(fields: [contractId], references: [id], onDelete: Cascade) 
+  contractId        String          @unique
+  amount            Float
+  fee               Float?          @default(0.00)
+  status            EscrowStatus    @default(PENDING)
+  transactions      Transaction[]
+  payment           Payment?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+}
+
+model Transaction {
+  id              String            @id @default(uuid())
+  spId            String?
+  sender          User              @relation("Sender", fields: [senderId], references: [id],  onDelete: Cascade) 
+  senderId        String
+  amount          Float
+  contract        Contract          @relation(fields: [contractId], references: [id], onDelete: Cascade) 
+  contractId      String  
+  escrow          Escrow            @relation(fields: [escrowId], references: [id], onDelete: Cascade) 
+  escrowId        String         
+  currency        String
+  status          TransactionStatus
+  transactionData Json?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+model Dispute {
+  id                String          @id @default(uuid())
+  raisedBy          User            @relation("DisputeRaiser", fields: [raisedById], references: [id],  onDelete: Cascade) 
+  raisedById        String
+  contract          Contract        @relation(fields: [contractId], references: [id], onDelete: Cascade) 
+  contractId        String          @unique
+  buyer             User            @relation("DisputeBuyer", fields: [buyerId], references: [id],  onDelete: Cascade) 
+  buyerId           String
+  seller            User            @relation("DisputeSeller", fields: [sellerId], references: [id],  onDelete: Cascade) 
+  sellerId          String
+  reason            String
+  attachments       Attachment[]     
+  disputeWinner     User?           @relation("DisputeWinner", fields: [disputeWinnerId], references: [id],  onDelete: Cascade)
+  disputeWinnerId   String?
+  status            DisputeStatus?  @default(PENDING)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+}
+
+model Payment {
+  id              String            @id @default(uuid())
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade) 
+  userId          String  
+  contract        Contract          @relation(fields: [contractId], references: [id], onDelete: Cascade) 
+  contractId      String            @unique
+  escrow          Escrow            @relation(fields: [escrowId], references: [id], onDelete: Cascade) 
+  escrowId        String            @unique
+  amount          Float
+  redemptionCode  String?
+  status          PaymentStatus     @default(PENDING)
+  category        PaymentCategory?  @default(DISBURSED)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+model Message {
+  id          String   @id @default(uuid())
+  sender      User?     @relation("Sender", fields: [senderId], references: [id],  onDelete: Cascade)
+  senderId    String?
+  receiver    User?     @relation("Receiver", fields: [receiverId], references: [id],  onDelete: Cascade)
+  receiverId  String?
+  resourceId  String?
+  resourceUrl String?
+  message     String?
+  viewed      Boolean? @default(false)
+  appMessage  Boolean  @default(false) 
+  extraData   Json?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+
+
+model TempAccount {
+  id              String            @id @default(uuid())
+  contract        Contract          @relation(fields: [contractId], references: [id], onDelete: Cascade) 
+  contractId      String            @unique
+  accountDetails  Json      
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+model PaymentAccount {
+  id              String            @id @default(uuid())
+  user            User              @relation(fields: [userId], references: [id],  onDelete: Cascade) 
+  userId          String
+  bankName        String
+  accountName     String
+  accountNumber   String
+  bankDetails     Json?  
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+model Notification {
+  id              String            @id @default(uuid())
+  user            User?             @relation( fields: [userId], references: [id],  onDelete: Cascade) 
+  userId          String?
+  content         String
+  isRead          Boolean           @default(false)
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+}
+
+enum ContractStatus {
+  ACTIVE
+  COMPLETED
+  TERMINATED
+  DISPUTED
+}
+
+enum ContractStage {
+  CREATED
+  AGREED
+  PAID
+  DELIVERED
+  INSPECTED
+  COMPLETED
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum EscrowStatus {
+  PENDING
+  REVERTED
+  DISBURSED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+}
+
+enum DisputeStatus {
+  PENDING
+  RESOLVED
+}
+
+enum PaymentCategory {
+  REFUNDED
+  DISBURSED
+}
+
+enum EscrowFeePayers {
+  buyer
+  seller
+}
