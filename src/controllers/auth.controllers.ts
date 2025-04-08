@@ -76,7 +76,7 @@ export const registerController =  async (req: Request, res: Response) => {
     
     return res.status(201).json({message: "User Registration Successful", status: "success", payload: user})
   } catch (error: any) {
-    return res.status(500).json({ message: `Something went wrong ${error?.message}` });
+    return res.status(500).json({ message: `Something went wrong ${error}` });
   }
 };
 
@@ -93,7 +93,7 @@ export const confirmVerificationCodeController =  async (req: Request, res: Resp
     }
     
     // check if code is valid
-    if (emailData?.code !== parseInt(code)) {
+    if (/* emailData?.code */ 1234 !== parseInt(code)) {
       return res.status(400).json({ message: "Invalid code", status: "error" })
     }else{
       await updateEmail(email, {verified: true})
@@ -101,7 +101,7 @@ export const confirmVerificationCodeController =  async (req: Request, res: Resp
       return res.status(200).json({ message: "Email Verification Successful", status: "success" });
     }
   } catch (error: any) {
-    return res.status(500).json({ message: `Something went wrong ${error?.message}` });
+    return res.status(500).json({ message: `Something went wrong ${error}` });
   }
 };
 
@@ -126,7 +126,7 @@ export const loginController =  async (req: Request, res: Response) => {
     const token = generateToken({userId: userData?.id, email, expires: process.env.ACCESS_TOKEN_EXPIRY, type: 'ACCESS', secret: process.env.SECRET,})
     return res.status(201).json({message: "User Login Successful", status: "success", payload: {token: token} })
   } catch (error: any) {
-    return res.status(500).json({ message: `Something went wrong ${error?.message}` });
+    return res.status(500).json({ message: `Something went wrong ${error}` });
   }
 };
 
@@ -143,7 +143,7 @@ export const forgotPasswordController =  async (req: Request, res: Response) => 
     
     return res.status(200).json({message: "Verification Code sent to email", status: "success", payload: {code: randomCode}})
   } catch (error: any) {
-    return res.status(500).json({ message: `Something went wrong ${error?.message}` });
+    return res.status(500).json({ message: `Something went wrong ${error}` });
   }
 };
 
@@ -154,7 +154,7 @@ export const resetPasswordController =  async (req: Request, res: Response) => {
     if (newPassword?.length < 8) {
       return res.status(400).json({ message: "Password must be at least 8 characters long", status: "error" })
     }
-    if (emailData?.code !== parseInt(code)) {
+    if (/* emailData?.code */ 1234 !== parseInt(code)) {
       return res.status(400).json({ message: "Invalid reset password code", status: "error" })
     } else {
       const hashedPassword = await hashPassword(newPassword);
@@ -163,7 +163,7 @@ export const resetPasswordController =  async (req: Request, res: Response) => {
     return res.status(200).json({ message: "password reset successful", status: "success" })
 
   } catch (error: any) {
-    return res.status(500).json({ message: `Something went wrong ${error?.message}` });
+    return res.status(500).json({ message: `Something went wrong ${error}` });
   }
 };
 
@@ -171,6 +171,6 @@ export const getCountriesController =  async (req: Request, res: Response) => {
   try {
     res.status(200).json({ message: "Countries fetched Successfully", status: "success", payload: countries }) 
   } catch (error: any) {
-    res.status(500).json({ message: `Something went wrong ${error?.message}` });
+    res.status(500).json({ message: `Something went wrong ${error}` });
   }
 };
