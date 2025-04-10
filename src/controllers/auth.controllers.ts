@@ -98,7 +98,8 @@ export const confirmVerificationCodeController =  async (req: Request, res: Resp
     }else{
       await updateEmail(email, {verified: true})
       await updateUser(userData?.id, {emailVerified: true})
-      return res.status(200).json({ message: "Email Verification Successful", status: "success" });
+      const token = generateToken({userId: userData?.id, email, expires: process.env.ACCESS_TOKEN_EXPIRY, type: 'ACCESS', secret: process.env.SECRET,})
+      return res.status(200).json({message: "User Verification Successful", status: "success", payload: {token: token} })
     }
   } catch (error: any) {
     return res.status(500).json({ message: `Something went wrong ${error}` });
@@ -124,7 +125,7 @@ export const loginController =  async (req: Request, res: Response) => {
       return res.status(400).json({ message: "Email or Password Invalid", status: "error" })
     } 
     const token = generateToken({userId: userData?.id, email, expires: process.env.ACCESS_TOKEN_EXPIRY, type: 'ACCESS', secret: process.env.SECRET,})
-    return res.status(201).json({message: "User Login Successful", status: "success", payload: {token: token} })
+    return res.status(200).json({message: "User Login Successful", status: "success", payload: {token: token} })
   } catch (error: any) {
     return res.status(500).json({ message: `Something went wrong ${error}` });
   }
