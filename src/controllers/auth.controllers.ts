@@ -71,8 +71,8 @@ export const registerController =  async (req: Request, res: Response) => {
     await createEmail({email: email, code: randomCode})
 
     // send verification code to user's email
-    let result = await sendEmail({email, code: randomCode});
-    console.log(result)
+    //let result = await sendEmail({email, code: randomCode});
+    //console.log(result)
     
     return res.status(201).json({message: "User Registration Successful", status: "success", payload: user})
   } catch (error: any) {
@@ -140,7 +140,7 @@ export const forgotPasswordController =  async (req: Request, res: Response) => 
     }
     const randomCode = generateRandomCode()
     await updateEmail(email, {code: randomCode})
-    await sendEmail({email, code: randomCode, title: "Forgot Password Verification Mail", message: "reset your password"});
+    //await sendEmail({email, code: randomCode, title: "Forgot Password Verification Mail", message: "reset your password"});
     
     return res.status(200).json({message: "Verification Code sent to email", status: "success", payload: {code: randomCode}})
   } catch (error: any) {
