@@ -28,16 +28,19 @@ export const getAllContracts = async(filters: getContractsFilters, pagination: {
     },
     include: {
       contractItems: true,
+      buyer: true,
+      seller: true
     }
   });
+
   const totalCount = await prisma.contract.count({
-    where: {
+    /* where: {
       ...(filters?.userId && { OR: [
         {buyerId: filters?.userId},
         {sellerId: filters?.userId}
       ]}),
       ...(filters?.status && {status: filters?.status})
-    },
+    }, */
   });
   const totalPages = Math.ceil( totalCount / parseInt(pagination.take));
   return {page: parseInt(pagination.page), totalPages, pageSize: takeVal, totalCount, data: contracts}
@@ -60,11 +63,12 @@ export const getContractById = async(id: string) => {
 
 
 export interface createContractData {
-  buyerId:       string
-  sellerId:      string
+  userId:         string
+  buyerId?:       string
+  sellerId?:      string
   title:         string
-  currency:      string
-  inspectionPeriod:  string
+  currency?:      string
+  inspectionPeriod:  number
   toBeInformed:   object
   startDate?:     string
   endDate?:       string        
@@ -78,8 +82,9 @@ export interface createContractItemData {
   contractId:        string
   itemName:          string
   price:             number
-  category?:         string
+  category?:         "techGadgets" | "automobiles" | "realEstate"
   description?:      string
+  imageUrl?:         string
 }
 
 
@@ -98,13 +103,31 @@ export const createManyContractItems = async(contractData: createContractItemDat
   return contract
 };
 
+export const getAllContractItems = async (contractId: string) => {
+  const items = await prisma.contractItem.findMany({
+    where: {
+      contractId
+    }
+  });
+  return items;
+};
+
+// Delete a specific contract item by ID
+export const deleteContractItem = async (id: string) => {
+  const deletedItem = await prisma.contractItem.delete({
+    where: { id },
+  });
+  return deletedItem;
+};
+
+
 
 export interface updateContractData {
   buyerId?:       string
   sellerId?:      string
   title?:         string
   currency?:      string
-  inspectionPeriod?:  string
+  inspectionPeriod?:  number
   startDate?:     string
   endDate?:       string        
   agreementTerms?: object 
@@ -126,6 +149,14 @@ export const setSellerOnContract = async (id: string, sellerId: string) => {
   const contract = await prisma.contract.update({
     where: {id},
     data: {sellerId: sellerId}
+  })
+  return contract;
+};
+
+export const setBuyerOnContract = async (id: string, buyerId: string) => {
+  const contract = await prisma.contract.update({
+    where: {id},
+    data: {buyerId: buyerId}
   })
   return contract;
 };

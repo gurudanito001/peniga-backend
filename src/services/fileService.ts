@@ -31,7 +31,7 @@ export const uploadImage = async ({publicId="on8x0w6l", data}: props) => {
   try {
     // Upload the image
     const result = await cloudinary.uploader.upload(data, options);
-    //console.log(result);
+    console.log(result);
     return result;
   } catch (error) {
     console.error(error);

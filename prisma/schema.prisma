@@ -27,6 +27,7 @@ model User {
   firstName       String
   lastName        String
   isActive        Boolean?           @default(true)
+  role            UserRole           @default(USER)
   showProfileImg  Boolean?           @default(true)
   country         String?
   email           String            @unique
@@ -35,6 +36,8 @@ model User {
   profileImage    String?
   emailVerified   Boolean?           @default(false)
   allowNotification Boolean?         @default(true)
+  deletedAt         DateTime?
+  contractOwner   Contract[]        @relation("Owner")
   contractBuyer   Contract[]        @relation("ContractBuyer")
   contractSeller  Contract[]        @relation("ContractSeller")
   escrowBuyer     Escrow[]          @relation("EscrowBuyer")
@@ -56,18 +59,20 @@ model User {
 
 model Contract {
   id             String            @id @default(uuid())
+  user           User               @relation("Owner", fields: [userId], references: [id], onDelete: Cascade)
+  userId         String             
   buyer          User?              @relation("ContractBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
   buyerId        String?         
   seller         User?              @relation("ContractSeller", fields: [sellerId], references: [id], onDelete: Cascade)
   sellerId       String?        
   title          String         
   currency       String             @default("NGN")
-  inspectionPeriod  String       
+  inspectionPeriod  Int                    
   startDate      DateTime         @default(now()) 
   endDate        DateTime?        
   agreementTerms Json?  
   toBeInformed   Json 
-  escrowFeePaidBy EscrowFeePayers
+  escrowFeePaidBy EscrowFeePayers  @default(seller)
   contractItems  ContractItem[]
   attachments    Attachment[]   
   transactions   Transaction[]    
@@ -98,9 +103,9 @@ model ContractItem {
   id             String            @id @default(uuid())
   contract       Contract          @relation(fields: [contractId], references: [id], onDelete: Cascade)
   contractId     String                     
-  itemName       String                      
-  price          Int            
-  category       String?  
+  itemName       String    
+  quantity       Int              @default(1)         
+  price          Float            
   description    String? 
   imageUrl       String?                  
   createdAt      DateTime          @default(now()) 
@@ -272,4 +277,17 @@ enum PaymentCategory {
 enum EscrowFeePayers {
   buyer
   seller
+  split
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  SUPPORT
+}
+
+enum ProductCategory {
+  techGadgets
+  automobiles
+  realEstate
 }
