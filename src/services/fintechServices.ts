@@ -98,6 +98,7 @@ export const transferToBankAccount = ({ accountBank, accountNumber, amount, narr
       reference: reference,
       debit_currency: "NGN",
     };
+    console.log("Payload", transferData);
     axios.post(transferToBank, transferData, {
       headers: {
         Authorization: `Bearer ${process.env.FLW_SECRET_KEY}`, // Required for backend API calls
