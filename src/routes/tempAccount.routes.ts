@@ -7,7 +7,7 @@ import {
   deleteTempAccountController
 } from '../controllers/tempAccount.controllers';
 
-import { generateEscrowAccountController, getTransferFeesController, validatePaymentWebhook } from '../controllers/escrowAccount.controllers';
+import { generateEscrowAccountController, getTransferFeesController, validatePaymentWebhook, transferToSellerBankAccount, getBankCodes } from '../controllers/escrowAccount.controllers';
 
 import authValidation from '../utils/validators/auth.validators';
 
@@ -18,6 +18,8 @@ const router = Router();
 router.post('/generate', authValidation, generateEscrowAccountController);
 router.post('/getTransferFees', authValidation, getTransferFeesController);
 router.post('/validatePayment', validatePaymentWebhook);
+router.post('/transfer', authValidation, transferToSellerBankAccount)
+router.post('/getBanks', authValidation, getBankCodes)
 router.get('/', authValidation, getTempAccountsController);
 router.get('/:id', authValidation, getTempAccountByContractIdController);
 router.post('/', authValidation, createTempAccountController);

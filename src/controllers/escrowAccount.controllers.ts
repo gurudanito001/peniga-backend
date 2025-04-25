@@ -3,9 +3,10 @@ import { saveTempAccount } from '../models/tempAccount.model';
 const axios = require('axios');
 const Flutterwave = require('flutterwave-node-v3');
 const flw = new Flutterwave(process.env.FLW_PUBLIC_KEY, process.env.FLW_SECRET_KEY);
-import { generateVirtualAccount, getTransferFee } from '../services/fintechServices';
+import { generateVirtualAccount, getTransferFee, transferToBankAccount, getBanks } from '../services/fintechServices';
 import calculateEscrowFee from '../services/calculateEscrowFee';
 import { getContractById, updateContract } from '../models/contract.model';
+import { prisma } from '../utils/prisma';
 
 
 export const getTransferFeesController =  async (req: Request | any, res: Response) => {
@@ -54,6 +55,29 @@ export const validatePaymentWebhook =  async (req: Request | any, res: Response)
       res.status(400).json({ message: `Something went wrong` });
     }
     
+  } catch (error: Error | any) {
+    res.status(500).json({ message: `Something went wrong ${error}` });
+  }
+};
+
+export const getBankCodes =  async (req: Request | any, res: Response) => {
+
+  try {
+    const banksWithCodes: any = await getBanks();
+    res.status(200).json({ message: "Banks with their codes", payload: banksWithCodes.payload.data });
+   
+  } catch (error: Error | any) {
+    res.status(500).json({ message: `Something went wrong ${error}` });
+  }
+};
+
+export const transferToSellerBankAccount =  async (req: Request | any, res: Response) => {
+  const {accountBank, accountNumber, amount, narration, reference} = req.body as { accountBank: string, accountNumber: string, amount: number, narration: string, reference: string };
+ 
+  try {
+    const transferResult: any = await transferToBankAccount({accountBank, accountNumber, amount, narration, reference});
+    res.status(200).json({ message: "Transfer is being processed", payload: null });
+   
   } catch (error: Error | any) {
     res.status(500).json({ message: `Something went wrong ${error}` });
   }
