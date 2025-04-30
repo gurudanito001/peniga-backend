@@ -3,7 +3,7 @@ import { saveTempAccount } from '../models/tempAccount.model';
 const axios = require('axios');
 const Flutterwave = require('flutterwave-node-v3');
 const flw = new Flutterwave(process.env.FLW_PUBLIC_KEY, process.env.FLW_SECRET_KEY);
-import { generateVirtualAccount, getTransferFee, transferToBankAccount, getBanks } from '../services/fintechServices';
+import { generateVirtualAccount, getTransferFee, transferToBankAccount, getBanks, checkTransferStatus, validateAccountNumber } from '../services/fintechServices';
 import calculateEscrowFee from '../services/calculateEscrowFee';
 import { getContractById, updateContract } from '../models/contract.model';
 import { prisma } from '../utils/prisma';
@@ -41,7 +41,7 @@ export const generateEscrowAccountController =  async (req: Request | any, res: 
   }
 };
 
-export const validatePaymentWebhook =  async (req: Request | any, res: Response) => { 
+export const validatePaymentWebhookController =  async (req: Request | any, res: Response) => { 
   try {
     const {event, data} = req.body as {event: string, data: any};
     // check the status of  the transaction
@@ -60,7 +60,7 @@ export const validatePaymentWebhook =  async (req: Request | any, res: Response)
   }
 };
 
-export const getBankCodes =  async (req: Request | any, res: Response) => {
+export const getBankCodesController =  async (req: Request | any, res: Response) => {
 
   try {
     const banksWithCodes: any = await getBanks();
@@ -71,14 +71,40 @@ export const getBankCodes =  async (req: Request | any, res: Response) => {
   }
 };
 
-export const transferToSellerBankAccount =  async (req: Request | any, res: Response) => {
-  const {accountBank, accountNumber, amount, narration, reference} = req.body as { accountBank: string, accountNumber: string, amount: number, narration: string, reference: string };
- 
+export const transferToSellerBankAccountController =  async (req: Request | any, res: Response) => {
+  const {accountBank, accountNumber, amount, reference} = req.body as { accountBank: string, accountNumber: string, amount: number, narration?: string, reference: string };
+  
   try {
-    const transferResult: any = await transferToBankAccount({accountBank, accountNumber, amount, narration, reference});
+    const transferResult: any = await transferToBankAccount({accountBank, accountNumber, amount, reference});
     res.status(200).json({ message: "Transfer is being processed", payload: null });
    
   } catch (error: Error | any) {
     res.status(500).json({ message: `Something went wrong ${error}` });
   }
 };
+
+export const checkTransferStatusController =  async (req: Request | any, res: Response) => {
+  const transferId = req.params.id;
+  
+  try {
+    const transferStatus: any = await checkTransferStatus(transferId);
+    res.status(200).json({ message: "Transfer status fetched successfully", payload: transferStatus.payload.data });
+   
+  } catch (error: Error | any) {
+    res.status(500).json({ message: `Something went wrong ${error}` });
+  }
+};
+
+export const validateAccountController =  async (req: Request | any, res: Response) => {
+  const { accountNumber, bankCode} = req.body as { accountNumber: string, bankCode: string };
+
+  try {
+    const accountDetails = await validateAccountNumber({accountNumber, bankCode});
+    res.status(200).json({ message: "Account validated successfully", payload: accountDetails });
+   
+  } catch (error: Error | any) {
+    res.status(500).json({ message: `Something went wrong ${error}` });
+  }
+};
+
+
