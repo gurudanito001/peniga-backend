@@ -75,9 +75,13 @@ export const transferToSellerBankAccountController =  async (req: Request | any,
   const {accountBank, accountNumber, amount, reference} = req.body as { accountBank: string, accountNumber: string, amount: number, narration?: string, reference: string };
   
   try {
+    const contract = await getContractById(reference);
+    if(contract?.stage === "PAID"){
+      return res.status(400).json({ message: "Transfer has already been processed", payload: null });
+    }
     const transferResult: any = await transferToBankAccount({accountBank, accountNumber, amount, reference});
+    const updatedContract = await updateContract(reference, {stage: "PAID"})
     res.status(200).json({ message: "Transfer is being processed", payload: null });
-   
   } catch (error: Error | any) {
     res.status(500).json({ message: `Something went wrong ${error}` });
   }
@@ -97,7 +101,6 @@ export const checkTransferStatusController =  async (req: Request | any, res: Re
 
 export const validateAccountController =  async (req: Request | any, res: Response) => {
   const { accountNumber, bankCode} = req.body as { accountNumber: string, bankCode: string };
-
   try {
     const accountDetails: any = await validateAccountNumber({accountNumber, bankCode});
     res.status(200).json({ message: "Account validated successfully", payload: accountDetails?.payload?.data });
