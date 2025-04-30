@@ -229,7 +229,7 @@ export async function validateAccountNumber({accountNumber, bankCode}: {accountN
       account_number: accountNumber,
       account_bank: bankCode,
     }
-    axios.post(url, {
+    axios.post(url, validateAccountData,{
       headers: {
         Authorization: `Bearer ${process.env.FLW_SECRET_KEY}`, // Required for backend API calls
         "Content-Type": "application/json",

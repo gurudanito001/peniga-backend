@@ -99,8 +99,8 @@ export const validateAccountController =  async (req: Request | any, res: Respon
   const { accountNumber, bankCode} = req.body as { accountNumber: string, bankCode: string };
 
   try {
-    const accountDetails = await validateAccountNumber({accountNumber, bankCode});
-    res.status(200).json({ message: "Account validated successfully", payload: accountDetails });
+    const accountDetails: any = await validateAccountNumber({accountNumber, bankCode});
+    res.status(200).json({ message: "Account validated successfully", payload: accountDetails?.payload?.data });
    
   } catch (error: Error | any) {
     res.status(500).json({ message: `Something went wrong ${error}` });
