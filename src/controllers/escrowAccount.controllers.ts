@@ -76,7 +76,7 @@ export const transferToSellerBankAccountController =  async (req: Request | any,
   
   try {
     const contract = await getContractById(reference);
-    if(contract?.stage === "PAID"){
+    if(contract?.stage === "COMPLETED"){
       return res.status(400).json({ message: "Transfer has already been processed", payload: null });
     }
     const transferResult: any = await transferToBankAccount({accountBank, accountNumber, amount, reference});
